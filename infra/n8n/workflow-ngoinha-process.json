@@ -1,0 +1,96 @@
+{
+  "name": "Ngoinha Image Process",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ngoinha-process",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "responseBody": "{\"ok\": true}"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Call Analyze API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "url": "http://api:8080/analyze",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"bucket\": $json[\"bucket\"], \"object_name\": $json[\"object_name\"], \"request_id\": $json[\"request_id\"]}"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Compose Caption",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [800, 300],
+      "parameters": {
+        "functionCode": "return items.map(item => {\n  const ai = item.json;\n  const source = $items(\"Webhook Trigger\")[0].json;\n  const base = {\n    request_id: source.request_id,\n    product_name: ai.object,\n    condition: source.condition,\n    size: source.size,\n    price: source.price,\n    colors: ai.colors,\n    caption: ai.captionDraft,\n  };\n  return { json: base };\n});"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Callback API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "url": "http://api:8080/callback/result",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={{$json}}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Call Analyze API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Analyze API": {
+      "main": [
+        [
+          {
+            "node": "Compose Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Caption": {
+      "main": [
+        [
+          {
+            "node": "Callback API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "pinData": {},
+  "versionId": "1"
+}
+

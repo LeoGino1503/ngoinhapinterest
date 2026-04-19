@@ -1,0 +1,30 @@
+app:
+  # Public-facing base URL for the API service (used by n8n callbacks)
+  base_url: http://localhost:8080
+  webhook_url: https://bot.zapps.me/api/webhook/ngoinha-process
+
+storage:
+  # Non-secret MinIO config; credentials live in .env
+  endpoint: http://localhost:9000
+  bucket: ngoinha-images
+  region: us-east-1
+
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+  ttl_seconds: 86400
+
+ai:
+  openai:
+    enabled: true
+    model: gpt-4o-mini
+    endpoint: https://api.openai.com/v1/responses
+
+  gemini:
+    enabled: false
+    model: gemini-2.5-flash
+    endpoint: https://generativelanguage.googleapis.com/v1beta/models
+features:
+  enable_zalo_webhooks: true
+
